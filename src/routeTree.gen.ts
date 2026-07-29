@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CalibrationRouteImport } from './routes/calibration'
@@ -16,6 +17,11 @@ import { Route as BaselineRouteImport } from './routes/baseline'
 import { Route as AdaptferRouteImport } from './routes/adaptfer'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LabRoute = LabRouteImport.update({
   id: '/lab',
   path: '/lab',
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/calibration': typeof CalibrationRoute
   '/compare': typeof CompareRoute
   '/lab': typeof LabRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/calibration': typeof CalibrationRoute
   '/compare': typeof CompareRoute
   '/lab': typeof LabRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/calibration': typeof CalibrationRoute
   '/compare': typeof CompareRoute
   '/lab': typeof LabRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,8 +90,16 @@ export interface FileRouteTypes {
     | '/calibration'
     | '/compare'
     | '/lab'
+    | '/sitemap.xml'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/adaptfer' | '/baseline' | '/calibration' | '/compare' | '/lab'
+  to:
+    | '/'
+    | '/adaptfer'
+    | '/baseline'
+    | '/calibration'
+    | '/compare'
+    | '/lab'
+    | '/sitemap.xml'
   id:
     | '__root__'
     | '/'
@@ -91,6 +108,7 @@ export interface FileRouteTypes {
     | '/calibration'
     | '/compare'
     | '/lab'
+    | '/sitemap.xml'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,10 +118,18 @@ export interface RootRouteChildren {
   CalibrationRoute: typeof CalibrationRoute
   CompareRoute: typeof CompareRoute
   LabRoute: typeof LabRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lab': {
       id: '/lab'
       path: '/lab'
@@ -156,7 +182,18 @@ const rootRouteChildren: RootRouteChildren = {
   CalibrationRoute: CalibrationRoute,
   CompareRoute: CompareRoute,
   LabRoute: LabRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
