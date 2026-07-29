@@ -93,8 +93,9 @@ function Compare() {
           </div>
           <div className="mt-6 flex h-56 items-end gap-3">
             {PER_EXPRESSION.map((e) => (
-              <div key={e.label} className="flex flex-1 flex-col items-center gap-2">
-                <div className="flex h-full w-full items-end justify-center gap-1">
+              <div key={e.label} className="flex h-full flex-1 flex-col items-center gap-2">
+                <div className="flex min-h-0 w-full flex-1 items-end justify-center gap-1">
+
                   <div
                     className="w-1/3 rounded-t-sm bg-muted-foreground/50 smooth"
                     style={{ height: `${e.generic * 100}%` }}
