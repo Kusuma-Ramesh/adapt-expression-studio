@@ -120,8 +120,17 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <footer className="border-t border-border px-5 py-8">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+            <p className="mono-label">AdaptFER · Frontend prototype · Mock inference</p>
+            <p className="mono-label">Backend target: Python / TensorFlow</p>
+          </div>
+        </footer>
+      </div>
     </QueryClientProvider>
   );
 }
