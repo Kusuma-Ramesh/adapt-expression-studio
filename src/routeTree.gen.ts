@@ -9,10 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LabRouteImport } from './routes/lab'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CalibrationRouteImport } from './routes/calibration'
 import { Route as BaselineRouteImport } from './routes/baseline'
+import { Route as AdaptferRouteImport } from './routes/adaptfer'
 import { Route as IndexRouteImport } from './routes/index'
 
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalibrationRoute = CalibrationRouteImport.update({
   id: '/calibration',
   path: '/calibration',
@@ -23,6 +36,11 @@ const BaselineRoute = BaselineRouteImport.update({
   path: '/baseline',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdaptferRoute = AdaptferRouteImport.update({
+  id: '/adaptfer',
+  path: '/adaptfer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,36 +49,75 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/adaptfer': typeof AdaptferRoute
   '/baseline': typeof BaselineRoute
   '/calibration': typeof CalibrationRoute
+  '/compare': typeof CompareRoute
+  '/lab': typeof LabRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/adaptfer': typeof AdaptferRoute
   '/baseline': typeof BaselineRoute
   '/calibration': typeof CalibrationRoute
+  '/compare': typeof CompareRoute
+  '/lab': typeof LabRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/adaptfer': typeof AdaptferRoute
   '/baseline': typeof BaselineRoute
   '/calibration': typeof CalibrationRoute
+  '/compare': typeof CompareRoute
+  '/lab': typeof LabRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/baseline' | '/calibration'
+  fullPaths:
+    | '/'
+    | '/adaptfer'
+    | '/baseline'
+    | '/calibration'
+    | '/compare'
+    | '/lab'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/baseline' | '/calibration'
-  id: '__root__' | '/' | '/baseline' | '/calibration'
+  to: '/' | '/adaptfer' | '/baseline' | '/calibration' | '/compare' | '/lab'
+  id:
+    | '__root__'
+    | '/'
+    | '/adaptfer'
+    | '/baseline'
+    | '/calibration'
+    | '/compare'
+    | '/lab'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdaptferRoute: typeof AdaptferRoute
   BaselineRoute: typeof BaselineRoute
   CalibrationRoute: typeof CalibrationRoute
+  CompareRoute: typeof CompareRoute
+  LabRoute: typeof LabRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calibration': {
       id: '/calibration'
       path: '/calibration'
@@ -75,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaselineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/adaptfer': {
+      id: '/adaptfer'
+      path: '/adaptfer'
+      fullPath: '/adaptfer'
+      preLoaderRoute: typeof AdaptferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,8 +151,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdaptferRoute: AdaptferRoute,
   BaselineRoute: BaselineRoute,
   CalibrationRoute: CalibrationRoute,
+  CompareRoute: CompareRoute,
+  LabRoute: LabRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
