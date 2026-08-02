@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
+import { getResults } from "../api/adaptferApi";
 import { createFileRoute } from "@tanstack/react-router";
-import { COMPARE_METRICS, PER_EXPRESSION } from "../lib/adaptfer-data";
 import { PageShell, Panel } from "../components/adaptfer/ui.jsx";
 import MetricCard from "../components/adaptfer/MetricCard.jsx";
 
@@ -52,30 +53,102 @@ function ConfusionMatrix({ title, seedShift = 0, tone = "muted" }) {
         })}
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
-        Placeholder heatmap — replaced by the backend confusion matrix export.
+        Confusion matrix visualization will be integrated in a future update.
       </p>
     </Panel>
   );
 }
 
 function Compare() {
+
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+
+    async function loadResults() {
+
+      try {
+
+        const data = await getResults();
+
+        console.log("Results:", data);
+
+        setResults(data);
+
+      } catch (err) {
+
+        console.error(err);
+
+        setError(err.message);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    }
+
+    loadResults();
+
+  }, []);
+
+  if (loading) {
+
+    return (
+      <PageShell
+        eyebrow="Stage 05 · Evaluation"
+        title="Loading Results..."
+        description="Fetching experiment results from backend..."
+      />
+    );
+
+  }
+
+  if (error) {
+
+    return (
+      <PageShell
+        eyebrow="Stage 05 · Evaluation"
+        title="Backend Error"
+        description={error}
+      />
+    );
+
+  }
   return (
     <PageShell
       eyebrow="Stage 05 · Evaluation"
       title="Generic DeepFER vs Personalized AdaptFER"
-      description="Held-out evaluation on the personal test split. All figures are mock experiment output pending the TensorFlow evaluation run."
+      description="Evaluation results comparing Generic DeepFER and Personalized AdaptFER on the personal test dataset."
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {COMPARE_METRICS.map((m) => (
-          <MetricCard
-            key={m.label}
-            label={m.label}
-            value={m.adapt}
-            delta={m.delta}
-            sub={`generic ${m.generic}`}
-            hint={m.hint}
-          />
-        ))}
+        <MetricCard
+          label="Generic Accuracy"
+          value={`${(results.generic.accuracy * 100).toFixed(2)}%`}
+          sub="Before Personalization"
+        />
+
+        <MetricCard
+          label="AdaptFER Accuracy"
+          value={`${(results.adaptfer.accuracy * 100).toFixed(2)}%`}
+          delta={`+${results.comparison.accuracy_improvement_percentage_points.toFixed(2)}%`}
+          sub="After Personalization"
+        />
+
+        <MetricCard
+          label="Average Confidence"
+          value={`${(results.adaptfer.average_confidence * 100).toFixed(2)}%`}
+          sub={`Generic ${(results.generic.average_confidence * 100).toFixed(2)}%`}
+        />
+
+        <MetricCard
+          label="Error Reduction"
+          value={`${(results.comparison.relative_error_reduction * 100).toFixed(2)}%`}
+          sub="Relative Error Reduction"
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_1fr]">
@@ -92,22 +165,25 @@ function Compare() {
             </div>
           </div>
           <div className="mt-6 flex items-end gap-3">
-            {PER_EXPRESSION.map((e) => (
-              <div key={e.label} className="flex flex-1 flex-col items-center gap-2">
+            {Object.entries(results.per_emotion).map(([emotion, values]) => (
+              <div key={emotion} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex w-full items-end justify-center gap-1" style={{ height: 180 }}>
                   <div
-                    className="w-1/3 rounded-t-sm bg-muted-foreground/50 smooth"
-                    style={{ height: `${Math.round(e.generic * 180)}px` }}
-                  />
-                  <div
-                    className="w-1/3 rounded-t-sm smooth [background:var(--gradient-primary)]"
+                    className="w-1/3 rounded-t-sm bg-muted-foreground/50"
                     style={{
-                      height: `${Math.round(e.adapt * 180)}px`,
-                      boxShadow: "0 0 14px color-mix(in oklab, var(--primary) 40%, transparent)",
+                      height: `${values.generic_recall * 180}px`,
+                    }}
+                  />
+
+                  <div
+                    className="w-1/3 rounded-t-sm [background:var(--gradient-primary)]"
+                    style={{
+                      height: `${values.adaptfer_recall * 180}px`,
                     }}
                   />
                 </div>
-                <span className="mono-label !text-[9px]">{e.label.slice(0, 4)}</span>
+
+                <span className="mono-label !text-[9px]">{emotion.slice(0, 4).toUpperCase()}</span>
               </div>
             ))}
           </div>
@@ -126,15 +202,21 @@ function Compare() {
               </tr>
             </thead>
             <tbody>
-              {PER_EXPRESSION.map((e) => {
-                const change = e.adapt - e.generic;
+              {Object.entries(results.per_emotion).map(([emotion, values]) => {
+                const change = values.adaptfer_recall - values.generic_recall;
+
                 return (
-                  <tr key={e.label} className="border-b border-border/60 last:border-0">
-                    <td className="py-2.5">{e.label}</td>
+                  <tr key={emotion} className="border-b border-border/60 last:border-0">
+                    <td className="py-2.5">{emotion}</td>
+
                     <td className="py-2.5 font-mono text-xs text-muted-foreground tabular-nums">
-                      {e.generic.toFixed(2)}
+                      {values.generic_recall.toFixed(2)}
                     </td>
-                    <td className="py-2.5 font-mono text-xs tabular-nums">{e.adapt.toFixed(2)}</td>
+
+                    <td className="py-2.5 font-mono text-xs tabular-nums">
+                      {values.adaptfer_recall.toFixed(2)}
+                    </td>
+
                     <td
                       className={`py-2.5 font-mono text-xs tabular-nums ${
                         change > 0 ? "text-primary" : "text-muted-foreground"
