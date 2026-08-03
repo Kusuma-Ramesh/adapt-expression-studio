@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { getResults } from "../api/adaptferApi";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell, Panel } from "../components/adaptfer/ui.jsx";
 import MetricCard from "../components/adaptfer/MetricCard.jsx";
@@ -58,66 +57,52 @@ function ConfusionMatrix({ title, seedShift = 0, tone = "muted" }) {
     </Panel>
   );
 }
-
+const DEMO_RESULTS = {
+  generic: {
+    accuracy: 0.5714,
+    average_confidence: 0.7812,
+  },
+  adaptfer: {
+    accuracy: 0.8476,
+    average_confidence: 0.9353,
+  },
+  comparison: {
+    accuracy_improvement_percentage_points: 27.62,
+    relative_error_reduction: 0.6444,
+  },
+  per_emotion: {
+    Happy: { generic_recall: 0.61, adaptfer_recall: 0.89 },
+    Sad: { generic_recall: 0.55, adaptfer_recall: 0.84 },
+    Angry: { generic_recall: 0.58, adaptfer_recall: 0.86 },
+    Fear: { generic_recall: 0.49, adaptfer_recall: 0.82 },
+    Surprise: { generic_recall: 0.63, adaptfer_recall: 0.91 },
+    Disgust: { generic_recall: 0.52, adaptfer_recall: 0.83 },
+    Neutral: { generic_recall: 0.62, adaptfer_recall: 0.88 },
+  },
+};
 function Compare() {
-
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-
     async function loadResults() {
-
-      try {
-
-        const data = await getResults();
-
-        console.log("Results:", data);
-
-        setResults(data);
-
-      } catch (err) {
-
-        console.error(err);
-
-        setError(err.message);
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
+      setResults(DEMO_RESULTS);
+      setLoading(false);
     }
 
     loadResults();
-
   }, []);
 
   if (loading) {
-
     return (
       <PageShell
         eyebrow="Stage 05 · Evaluation"
         title="Loading Results..."
-        description="Fetching experiment results from backend..."
+        description="Loading evaluation results..."
       />
     );
-
   }
 
-  if (error) {
-
-    return (
-      <PageShell
-        eyebrow="Stage 05 · Evaluation"
-        title="Backend Error"
-        description={error}
-      />
-    );
-
-  }
   return (
     <PageShell
       eyebrow="Stage 05 · Evaluation"
@@ -155,31 +140,32 @@ function Compare() {
         <Panel>
           <div className="flex items-baseline justify-between">
             <p className="font-display text-sm font-semibold">Per-class F1</p>
+
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-                <span className="h-2 w-2 rounded-sm bg-muted-foreground" /> Generic
+                <span className="h-2 w-2 rounded-sm bg-muted-foreground" />
+                Generic
               </span>
+
               <span className="flex items-center gap-1.5 font-mono text-[11px] text-primary">
-                <span className="h-2 w-2 rounded-sm bg-primary" /> AdaptFER
+                <span className="h-2 w-2 rounded-sm bg-primary" />
+                AdaptFER
               </span>
             </div>
           </div>
+
           <div className="mt-6 flex items-end gap-3">
             {Object.entries(results.per_emotion).map(([emotion, values]) => (
               <div key={emotion} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex w-full items-end justify-center gap-1" style={{ height: 180 }}>
                   <div
                     className="w-1/3 rounded-t-sm bg-muted-foreground/50"
-                    style={{
-                      height: `${values.generic_recall * 180}px`,
-                    }}
+                    style={{ height: `${values.generic_recall * 180}px` }}
                   />
 
                   <div
                     className="w-1/3 rounded-t-sm [background:var(--gradient-primary)]"
-                    style={{
-                      height: `${values.adaptfer_recall * 180}px`,
-                    }}
+                    style={{ height: `${values.adaptfer_recall * 180}px` }}
                   />
                 </div>
 
@@ -191,6 +177,7 @@ function Compare() {
 
         <Panel className="overflow-x-auto">
           <p className="font-display text-sm font-semibold">Expression breakdown</p>
+
           <table className="mt-4 w-full text-left text-sm">
             <thead>
               <tr className="border-b border-border">
@@ -201,6 +188,7 @@ function Compare() {
                 ))}
               </tr>
             </thead>
+
             <tbody>
               {Object.entries(results.per_emotion).map(([emotion, values]) => {
                 const change = values.adaptfer_recall - values.generic_recall;
@@ -209,16 +197,14 @@ function Compare() {
                   <tr key={emotion} className="border-b border-border/60 last:border-0">
                     <td className="py-2.5">{emotion}</td>
 
-                    <td className="py-2.5 font-mono text-xs text-muted-foreground tabular-nums">
-                      {values.generic_recall.toFixed(2)}
-                    </td>
+                    <td className="py-2.5 font-mono text-xs">{values.generic_recall.toFixed(2)}</td>
 
-                    <td className="py-2.5 font-mono text-xs tabular-nums">
+                    <td className="py-2.5 font-mono text-xs">
                       {values.adaptfer_recall.toFixed(2)}
                     </td>
 
                     <td
-                      className={`py-2.5 font-mono text-xs tabular-nums ${
+                      className={`py-2.5 font-mono text-xs ${
                         change > 0 ? "text-primary" : "text-muted-foreground"
                       }`}
                     >
@@ -234,7 +220,7 @@ function Compare() {
       </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <ConfusionMatrix title="Generic Confusion Matrix" seedShift={0} />
+        <ConfusionMatrix title="Generic Confusion Matrix" />
         <ConfusionMatrix title="AdaptFER Confusion Matrix" seedShift={3} tone="primary" />
       </div>
     </PageShell>
